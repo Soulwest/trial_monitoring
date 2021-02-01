@@ -116,7 +116,7 @@ foreach ($courts as $court_url)
 		'values' => $filtered_cases,
 	]);
 	$service->spreadsheets_values->append($spreadsheet_id, $spreadsheet_page, $body, [
-		'valueInputOption' => 'RAW',
+		'valueInputOption' => 'USER_ENTERED',
 	]);
 
 }
