@@ -1,0 +1,9 @@
+{
+    "require": {
+        "google/apiclient": "^2.0",
+        "ext-json": "*",
+        "ext-curl": "*",
+        "ext-mbstring": "*",
+        "ext-libxml": "*"
+    }
+}
