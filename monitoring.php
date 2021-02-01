@@ -24,7 +24,7 @@ $laws = [
 ];
 
 // Randomly pick date (0-4 days from today)
-$query_date = date('d.m.Y', time() + mt_rand(0, 4) * 86400);
+$query_date = date('d.m.Y', time() + mt_rand(0, 7) * 86400);
 echo 'Check cases at '.$query_date."\n";
 
 // Google sheets object and settings
@@ -36,7 +36,7 @@ foreach ($courts as $court_url)
 {
 	// Fetch page, try several times because servers return HTTP errors
 	$i = 0;
-	$court_url.='&H_date='.$query_date;
+	$court_url .= '&H_date='.$query_date;
 	do
 	{
 		$i++;
@@ -56,6 +56,10 @@ foreach ($courts as $court_url)
 	$dom->loadHTML($html);
 
 	$table = $dom->getElementById('tablcont');
+	if ($table === NULL)
+	{
+		continue;
+	}
 	$rows = $table->getElementsByTagName("tr");
 
 	// Get cases from G.docs
