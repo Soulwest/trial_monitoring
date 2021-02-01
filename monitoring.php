@@ -2,8 +2,8 @@
 set_time_limit(0);
 libxml_use_internal_errors(TRUE);
 
-require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/functions.php';
+require __DIR__.'/vendor/autoload.php';
+require __DIR__.'/functions.php';
 
 $courts = [
 	'https://lenin--perm.sudrf.ru/modules.php?name=sud_delo',
@@ -23,26 +23,32 @@ $laws = [
 	//'228.1'
 ];
 
+// Randomly pick date (0-4 days from today)
+$cur_date = date('d.m.Y', time() + mt_rand(0, 4) * 86400);
+echo 'Check cases at '.$cur_date."\n";
+
 // Google sheets object and settings
 $service = get_gsheets_obj();
 $spreadsheet_id = "1r7P9cX8r6m5RE335-1i1B2fW_C76DaqUdPX1WgWCClE";
-$spreadsheet_range = 'Лист1';
+$spreadsheet_page = 'Лист1';
 
 foreach ($courts as $court_url)
 {
 	// Fetch page, try several times because servers return HTTP errors
 	$i = 0;
-	do{
+	$court_url.='&H_date='.$cur_date;
+	do
+	{
 		$i++;
 		echo 'GET: '.$court_url."\n";
 		$html = get_page($court_url);
-	} while($i < $courts_retry_count AND ! $html);
+	} while ($i < $courts_retry_count and ! $html);
 
 	// if page didn't fetch, then stop
-	if (! $html)
+	if ( ! $html)
+	{
 		continue;
-
-	//$html = file_get_contents('page.html');
+	}
 
 	// Parse page
 	$dom = new DOMDocument;
@@ -54,7 +60,7 @@ foreach ($courts as $court_url)
 
 	// Get cases from G.docs
 	$added_cases = [];
-	$response = $service->spreadsheets_values->get($spreadsheet_id, 'Лист1!A2:A999', ['valueRenderOption' => 'FORMATTED_VALUE']);
+	$response = $service->spreadsheets_values->get($spreadsheet_id, $spreadsheet_page.'!A2:A999', ['valueRenderOption' => 'FORMATTED_VALUE']);
 	foreach ((array) $response->values as $value)
 	{
 		$added_cases[] = $value[0];
@@ -73,6 +79,7 @@ foreach ($courts as $court_url)
 		$cases[] = [
 			//$cols->item(0)->nodeValue,
 			$cols->item(1)->nodeValue, // Num
+			$cur_date, // date
 			$cols->item(2)->nodeValue, // Time
 			$cols->item(3)->nodeValue, // Where?
 			$cols->item(4)->nodeValue, // About
@@ -87,16 +94,16 @@ foreach ($courts as $court_url)
 	foreach ($cases as $case)
 	{
 		$should_append_case = FALSE;
-		foreach ($laws as  $law)
+		foreach ($laws as $law)
 		{
-			if (preg_match('~'.preg_quote($law).' ~msi', $case[3]))
+			if (preg_match('~'.preg_quote($law).' ~msi', $case[4]))
 			{
 				$should_append_case = TRUE;
 				break;
 			}
 		}
 
-		if ($should_append_case AND ! in_array($case[0], $added_cases))
+		if ($should_append_case and ! in_array($case[0], $added_cases))
 		{
 			$filtered_cases[] = $case;
 		}
@@ -106,10 +113,10 @@ foreach ($courts as $court_url)
 	// https://www.srijan.net/blog/integrating-google-sheets-with-php-is-this-easy-know-how
 	// https://codd-wd.ru/primery-google-sheets-tablicy-api-php/
 	$body = new Google_Service_Sheets_ValueRange([
-		'values' => $filtered_cases
+		'values' => $filtered_cases,
 	]);
-	$service->spreadsheets_values->append($spreadsheet_id, 'Лист1', $body, [
-		'valueInputOption' => 'RAW'
+	$service->spreadsheets_values->append($spreadsheet_id, $spreadsheet_page, $body, [
+		'valueInputOption' => 'RAW',
 	]);
 
 }
