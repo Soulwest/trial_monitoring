@@ -6,13 +6,14 @@ require __DIR__.'/vendor/autoload.php';
 require __DIR__.'/functions.php';
 
 $courts = [
-	'https://lenin--perm.sudrf.ru/modules.php?name=sud_delo',
-	'https://dzerjin--perm.sudrf.ru/modules.php?name=sud_delo',
-	'https://industry--perm.sudrf.ru/modules.php?name=sud_delo',
-	'https://sverdlov--perm.sudrf.ru/modules.php?name=sud_delo',
-	'https://ordgonik--perm.sudrf.ru/modules.php?name=sud_delo&srv_num=1',
-	'https://motovil--perm.sudrf.ru/modules.php?name=sud_delo',
-	'https://kirov--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Ленинский' => 'https://lenin--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Дздержинский' => 'https://dzerjin--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Индустриальный' => 'https://industry--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Свердловский' => 'https://sverdlov--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Орджоникидзовский' => 'https://ordgonik--perm.sudrf.ru/modules.php?name=sud_delo&srv_num=1',
+	'Мотовилихинский' => 'https://motovil--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Кировский' => 'https://kirov--perm.sudrf.ru/modules.php?name=sud_delo',
+	'Краевой' => 'https://oblsud--perm.sudrf.ru/modules.php?name=sud_delo&srv_num=1',
 ];
 $courts_retry_count = 3; // How many time we'll try to get data from URL.
 
@@ -24,7 +25,7 @@ $laws = [
 ];
 
 // Randomly pick date (0-4 days from today)
-$query_date = date('d.m.Y', time() + mt_rand(0, 7) * 86400);
+$query_date = date('d.m.Y', time() + mt_rand(0, 10) * 86400);
 echo 'Check cases at '.$query_date."\n";
 
 // Google sheets object and settings
@@ -32,7 +33,7 @@ $service = get_gsheets_obj();
 $spreadsheet_id = "1r7P9cX8r6m5RE335-1i1B2fW_C76DaqUdPX1WgWCClE";
 $spreadsheet_page = 'Лист1';
 
-foreach ($courts as $court_url)
+foreach ($courts as $court_name => $court_url)
 {
 	// Fetch page, try several times because servers return HTTP errors
 	$i = 0;
@@ -85,7 +86,7 @@ foreach ($courts as $court_url)
 			$cols->item(1)->nodeValue, // Num
 			$query_date, // date
 			$cols->item(2)->nodeValue, // Time
-			$cols->item(3)->nodeValue, // Where?
+			$court_name.' суд '.$cols->item(3)->nodeValue, // Where?
 			$cols->item(4)->nodeValue, // About
 			$cols->item(5)->nodeValue, // Judge
 			$cols->item(6)->nodeValue, // Result

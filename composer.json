@@ -4,6 +4,7 @@
         "ext-json": "*",
         "ext-curl": "*",
         "ext-mbstring": "*",
-        "ext-libxml": "*"
+        "ext-libxml": "*",
+        "ext-dom": "*"
     }
 }
